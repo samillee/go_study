@@ -4,7 +4,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/samillee/stringutil"
+	"github.com/samillee/go_study/stringutil"
 )
 
 func main() {
@@ -17,7 +17,6 @@ func main() {
 // sublime 내에서 go 소스 build 및 run, #으로 시작
 # build
 # run
-
 
 
 // -----------------------------------------------
@@ -36,7 +35,6 @@ dir %gopath%/bin
 go build github.com/samillee/hello2
 
 
-// -----------------------------------------------
 // 환경 설정 해줘야 할 것 들
 // 윈도우
 mkdir d:\dev\goworkspace
@@ -55,28 +53,14 @@ export PATH=$PATH:$GOROOT/bin
 
 // -----------------------------------------------
 // 공부하기 참고 사이트
-How to install golang - configuring environment variables - GOROOT - GOPATH
-
-https://github.com/GoesToEleven/Golan...
-
-Learn The Language - Golang Training
-https://goo.gl/DB1GvG 
-
-Learn The Language - Great Golang Books
+https://github.com/GoesToEleven
 https://www.golang-book.com/books/intro (Caleb Doxsey)
-http://amzn.to/1PmlB1w (Bill Kennedy)
-http://amzn.to/21nO1Mc (Donovan & Kernighan)
-http://amzn.to/1PmlKSB (Balbaert)
-
-Learn The Language - Quick Code Samples
+https://talks.golang.org
 https://gobyexample.com/ 
-
-ASK QUESTIONS & GET HELP
-https://forum.golangbridge.org/c/
-
+https://godoc.org/
 
 // -----------------------------------------------
-// Tour
+// Tour - Interactive : https://tour.golang.org
 go tool tour
 
 package main
@@ -88,7 +72,6 @@ import (
 )
 
 func main() {
-	fmt.Println("Welcome to the playground!")
 	fmt.Println("The time is", time.Now())
 	fmt.Println("rand.Intn(100): ", rand.Intn(100))
 }
@@ -115,20 +98,19 @@ func split(sum int) (x, y int) {
 var i, j int = 1, 2
 c, python, java := 1, false, "no!"
 
-
 bool
 string
 int  int8  int16  int32  int64
 uint uint8 uint16 uint32 uint64 uintptr
 byte // alias for uint8
-rune // alias for int32, represents a Unicode code point
+rune // 중요 alias for int32, represents a Unicode code point
 float32 float64
 complex64 complex128
 // The int, uint, and uintptr types are usually 32 bits wide on 32-bit systems 
 // and 64 bits wide on 64-bit systems. 
 
 Type conversion : T(v)
-Constants cannot be declared using the := syntax.
+주의: Constants cannot be declared using the := syntax.
 
 // Flow control: for, if, else, switch, defer -----------------------------------------------
 // for, for is Go's while, Forever, If, If with a short statatment, If and else, Switch, Switch eval order, Switch with no condition (long if-then-else)
@@ -143,20 +125,21 @@ func sqrt(x float64) string {
 	}
 	return fmt.Sprint(math.Sqrt(x))
 }
-Like for, if and switch statements can start with a short statement to execute before the condition.
+for, if, switch statements can start with a short statement before the condition.
 func pow(x, n, lim float64) float64 {
 	if v := math.Pow(x, n); v < lim { return v }
 	return lim
 }
 
-switch os := runtime.GOOS; os {
+
+switch os := runtime.GOOS; os { // break 없어도 한개만 실행하고 빠져 나옴
 	case "darwin": fmt.Println("OS X")
 	case "linux": fmt.Println("Linux")
 	default: fmt.Printf("%s", os)
 }
 
 t := time.Now()
-switch {
+switch { // 긴 if-else 대체 용도
 // switch t := time.Now(); {
 // 오류 switch t := time.Now(); _ {
 // switch _; {
@@ -173,6 +156,7 @@ for i := 0; i < 3; i++ { defer fmt.Println("defer for:", i) }
 // Creating a slice with make, Slices of slices, Appending to a slice, Range
 // Maps, Map literals, Mutating Maps, 
 // Function values, Function closures
+
 The type *T is a pointer to a T value. Its zero value is nil.
 "dereferencing" or "indirecting"
 Unlike C, Go has no pointer arithmetic.
@@ -188,8 +172,7 @@ v := Vertex{1, 2}
 p := &v
 p.X = 1e9
 
-can list just a subset of fields by using the Name: syntax
-v2 = Vertex{X: 1}  // Y:0 is implicit
+v2 = Vertex{X: 1}  // can list just a subset of fields
 
 var a [2]string
 primes := [6]int{2, 3, 5, 7, 11, 13}
@@ -202,19 +185,14 @@ Changing the elements of a slice modifies the corresponding elements of its unde
 Other slices that share the same underlying array will see those changes.
 [low:high bound]
 primes := [6]int{2, 3, 5, 7, 11, 13}
-var slc []int = primes[1:2]
+var slc []int = primes[1:2] : 주의 slc := primes[1:2] 이럼 array가 생성될 듯 함
 fmt.Println(slc)
 
-A slice literal is like an array literal without the length.
-r := []bool{true, true, false}
+r := []bool{true, true, false} : slice create if without the length.
 
-	slc2 := []struct {
-		i int
-		b bool
-	}{
-		{2, true}, {3, false}, {5, true}, {7, true}, {11, false}, {13, true},
-	}
-	fmt.Println(slc2)
+slc2 := []struct { i int; b bool }
+	{ {2, true}, {3, false}, {5, true}, {7, true}, {11, false}, {13, true}, }
+fmt.Println(slc2)
 
 var a [10]int
 a[0:10] == a[:10] == a[0:] == a[:]
