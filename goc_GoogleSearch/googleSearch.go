@@ -10,23 +10,34 @@ var (
 	Web   = fakeSearch("web")
 	Image = fakeSearch("image")
 	Video = fakeSearch("video")
+
+	Web1   = fakeSearch("web1")
+	Web2   = fakeSearch("web2")
+	Image1 = fakeSearch("image1")
+	Image2 = fakeSearch("image2")
+	Video1 = fakeSearch("video1")
+	Video2 = fakeSearch("video2")
 )
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	start := time.Now()
 	//results := Google("golang")
-	//results := Google2("golang")
-	results := Google21("golang")
+	//results := Google21("golang")
+	//results := Google22("golang")
+	//result := First("golang", fakeSearch("replica 1"),fakeSearch("replica 2"))
+
+	results := Google3("golang")
+
 	elapsed := time.Since(start)
+
 	fmt.Println(results)
 	fmt.Println(elapsed)
-
 }
 
-type Result struct {
-	url string
-}
+type Result string
+
+//type Result struct{ url string }
 
 type Search func(query string) Result
 
@@ -44,7 +55,7 @@ func Google(query string) (results []Result) {
 	return
 }
 
-func Google2(query string) (results []Result) {
+func Google21(query string) (results []Result) {
 	c := make(chan Result)
 
 	go func() { c <- Web(query) }()
@@ -59,7 +70,7 @@ func Google2(query string) (results []Result) {
 	return
 }
 
-func Google21(query string) (results []Result) {
+func Google22(query string) (results []Result) {
 	c := make(chan Result)
 
 	go func() { c <- Web(query) }()
@@ -83,14 +94,15 @@ func Google21(query string) (results []Result) {
 
 func First(query string, replicas ...Search) Result {
 	c := make(chan Result)
+
 	searchReplica := func(i int) { c <- replicas[i](query) }
+
 	for i := range replicas {
 		go searchReplica(i)
 	}
 	return <-c
 }
 
-/*
 func Google3(query string) (results []Result) {
 	c := make(chan Result)
 
@@ -102,8 +114,8 @@ func Google3(query string) (results []Result) {
 
 	for i := 0; i < 3; i++ {
 		select {
-		case r := <-c:
-			results = append(results, r)
+		case result := <-c:
+			results = append(results, result)
 		case <-timeout:
 			fmt.Println("timed out")
 			return
@@ -111,4 +123,3 @@ func Google3(query string) (results []Result) {
 	}
 	return
 }
-*/

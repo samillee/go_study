@@ -19,9 +19,11 @@ const (
 )
 
 var myMap map[string]Vertex2
+var v = 10
 
 func main() {
 	const World = "삼일"
+	fmt.Println("var v = 10 :", v)
 
 	for i := 0; i < 3; i++ {
 		defer fmt.Println("defer for:", i)
