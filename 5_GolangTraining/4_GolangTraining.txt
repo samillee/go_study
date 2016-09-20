@@ -1,0 +1,19 @@
+// -----------------------------------------------
+// https://github.com/GoesToEleven/GolangTraining
+// 소스에서 참고할 만한 것 추출
+package main
+
+import "fmt"
+
+func main() {
+	fmt.Println("Hello world!")
+
+	n := 42
+	fmt.Println(n)
+	fmt.Println()
+	fmt.Printf("%v \t %T \t %d \t %b \t %X \t %#X \t %q \n", n, n, n, n, n, n, n)
+}
+
+
+	res, err := http.Get("http://www.showit.co.kr")
+	page, err := ioutil.ReadAll(res.Body)

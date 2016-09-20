@@ -1,0 +1,288 @@
+// -----------------------------------------------
+// Effective Go
+// https://golang.org/doc/effective_go.html
+
+Introduction
+  A straightforward translation of a C++ or Java program into Go is unlikely to be satisfactory
+  Know the established conventions for programming in Go
+  Tips for writing clear, idiomatic Go code.
+Formatting: Indentation, Line length, Parentheses
+   The machine take care of most formatting issues. The gofmt program
+   x<<8 + y<<16  // means what the spacing implies, unlike in the other languages.
+Commentary /* */ //
+Names
+	Package names
+	   By convention, given lower case, single-word names; there should be no need for underscores or mixedCaps.
+	   The file name in the import determines just which package is being used.
+	   Long names don't automatically make things more readable.
+	Getters
+	   It's neither idiomatic nor necessary to put Get into the getter's name.
+	   If you have a field called owner (lower case, unexported), 
+	   the getter method should be called Owner (upper case, exported), not GetOwner. 
+	   The use of upper-case names for export provides the hook to discriminate the field from the method. 
+	   A setter function, if needed, will likely be called SetOwner.
+	   owner := obj.Owner()
+	   if owner != user { obj.SetOwner(user) }
+	Interface names
+	   By convention, one-method interfaces are named by the method name plus an -er suffix or similar modification to construct an agent noun: Reader, Writer, Formatter, CloseNotifier etc. 
+	   To avoid confusion, don't give your method one of those names unless the same signature and meaning. Conversely, if your type implements a method with the same meaning as a method on a well-known type, give it the same name and signature; call your string-converter method String not ToString.
+	MixedCaps: use MixedCaps or mixedCaps rather than underscores
+Semicolons
+   Like C, Go's formal grammar uses semicolons to terminate statements.
+   The lexer uses a simple rule to insert semicolons automatically.
+   “if the newline comes after a token that could end a statement, insert a semicolon”.
+Control structures
+	If : unnecessary else is omitted
+	   When an if statement doesn't flow into the next statement—that is, the body ends in break, continue, goto, or return—the unnecessary else is omitted.
+	Redeclaration and reassignment
+	   In a := declaration a variable v may appear even if it has already been declared, provided ...
+	   Making it easy to use a single err value, for example, in a long if-else chain.
+	   In Go the scope of function parameters and return values is the same as the function body, even though they appear lexically outside the braces that enclose the body.
+	For
+	   It unifies for and while and there is no do-while.
+	   Go has no comma operator and ++ and -- are statements not expressions. 
+	   Thus if you want to run multiple variables in a for you should use parallel assignment.	   
+	   for i, j := 0, len(a)-1; i < j; i, j = i+1, j-1 { // 주의
+	   	  a[i], a[j] = a[j], a[i]
+	   }
+	Switch: cases can be presented in comma-separated lists
+	   break statements can be used to terminate a switch early.  Breaking a loop is should be with a label.
+			Loop:
+				for n := 0; n < len(src); n += size {
+					switch {
+					case src[n] < sizeOne:
+						if validateOnly { break }
+						size = 1
+						update(src[n])
+
+					case src[n] < sizeTwo:
+						if n+1 >= len(src) {
+							err = errShortInput
+							break Loop
+						}
+						if validateOnly { break }
+						size = 2
+						update(src[n] + src[n+1]<<shift)
+					}
+				}
+	Type switch: to discover the dynamic type of an interface variable
+	   switch t := t.(type) { ... }
+Functions
+	Multiple return values: v, err    i, v
+	Named result parameters
+	   When named, initialized to the zero values when the function begins for a return statement with no arguments, the current values are used as the returned values.
+	Defer executed in LIFO order
+	   The arguments are evaluated when the defer executes, not when the call executes. 
+Data
+	Allocation with new: pointer return
+	   Returns a pointer to a newly allocated zero value of type T.
+	   Since zeroed, it's helpful to arrange when used without further initialization.
+	Constructors and composite literals
+	   Unlike in C, it's perfectly OK to return the address of a local variable
+	Allocation with make : value return
+	   For slices, maps and channels only, and it returns an initialized (not zeroed) value of type T (not *T).
+	   These three types represent, under the covers, references to data structures that must be initialized before use.
+	   var p *[]int = new([]int)       // allocates slice; rarely useful
+	   var v  []int = make([]int, 100) 	   
+	   var p *[]int = new([]int); *p = make([]int, 100, 100) // Unnecessarily complex
+	   v := make([]int, 100) // Idiomatic
+	Arrays
+	Slices
+	   Except for items with explicit dimension such as transformation matrices, 
+	   Mostly done with slices rather than simple arrays.
+	   Slices hold references to an underlying array.
+	   The length of a slice may be changed if still within the limits of the underlying array or make anther and assign.
+	Two-dimensional slices
+	Maps
+	Printing: %v %+v% #v %q %#q
+	   fmt.Printf("%v %+v %#v\n", t, t, t) // &{7 abc   def}, &{a:7 c:abc   def}, &main.T{a:7, c:"abc\tdef"}
+	Append : compiler supported
+	   func append(slice []T, elements ...T) []T
+	   where T is a placeholder for any given type. You can't actually write a function in Go where the type T is determined by the caller. That's why append is built in: it needs support from the compiler.
+Initialization
+   Complex structures can be built during initialization and the ordering issues.
+	Constants : compile time
+	   even when defined as locals in functions; only for numbers, characters (runes), strings, booleans. 
+	   1<<3 is a constant expression, while math.Sin(math.Pi/4) is not because the call to math.Sin needs to happen at run time.
+	   iota enumerator for creating enumerated constants.
+	Variables : runtime
+	init function : init()
+	   Each source file can define its own niladic init function to set up whatever state is required.
+	   Each file can have multiple init functions. init is called finally - after all the variable declarations in the package have evaluated their initializers, and those are evaluated only after all the imported packages have been initialized.
+	   A common use is to verify or repair correctness of the program state before real execution begins.
+Methods
+	Pointers vs. Values
+	    can eliminate that clumsiness by redefining the method to take a pointer as its receiver, so the method can overwrite the caller's slice.
+			func (p *ByteSlice) Append(data []byte) {
+			    slice := *p
+			    // Body as above, without the return.
+			    *p = slice
+			}
+			// In fact, we can do even better like a standard Write method, like this: 
+			func (p *ByteSlice) Write(data []byte) (n int, err error) {
+			    slice := *p
+			    // Again as above.
+			    *p = slice
+			    return len(data), nil
+			}
+		Then the type *ByteSlice satisfies the standard interface io.Writer, which is handy. 
+		We can print into one.
+		    var b ByteSlice
+		    fmt.Fprintf(&b, "This hour has %d days\n", 7)
+Interfaces and other types
+	Interfaces: A type can implement multiple interfaces.
+	Conversions
+	Interface conversions and type assertions
+	   Type switches (a form of conversion) take an interface and, for each case in the switch, in a sense convert it to the type of that case.
+	   value.(typeName)
+	Generality
+	Interfaces and methods
+Blank identifier
+	Blank identifier in multiple assignment
+	Unused imports and variables
+	   An error to import a package or to declare a variable without using it.
+	   var _ = fmt.Printf // supressing import error for later use
+	Import for side effect
+	   Import only for its side effects by renaming the package to the blank identifier
+			import _ "net/http/pprof"
+	   Making clear that the package is being imported for its side effects
+	Interface checks
+	   Just checking without actually using the interface itself to ignore the type-asserted value:
+			if _, ok := val.(json.Marshaler); ok {
+			    fmt.Printf("value %v of type %T implements json.Marshaler\n", val, val)
+			}
+Embedding : no subclassing in Go
+   Just “borrow” pieces of an implementation by embedding types within a struct or interface.
+		type ReadWriter interface {
+		    Reader
+		    Writer
+		}
+		type Job struct {
+		    Command string
+		    *log.Logger
+		}
+		job := &Job{command, log.New(os.Stderr, "Job: ", log.Ldate)}
+   Embedding types introduces the problem of name conflicts but the rules to resolve them are simple. 
+   First, a field or method X hides any other item X in a more deeply nested part of the type. 
+   If log.Logger contained a field or method called Command, the Command field of Job would dominate it.
+Concurrency
+	Share by communicating
+	   Only one goroutine has access to the value at any given time. Data races cannot occur, by design. 
+	   A slogan: Do not communicate by sharing memory; instead, share memory by communicating.
+	   Seen as a type-safe generalization of Unix pipes
+	Goroutines
+	   a function executing concurrently with other goroutines in the same address space.
+	   Prefix with the go keyword to run the call and when completes, the goroutine exits silently.
+	   In Go, function literals are closures: the implementation makes sure the variables referred to by the function survive as long as they are active.
+	Channels
+	   Value acts as a reference to an underlying data structure.
+	   Receivers always block until there is data to receive.
+	   A buffered channel can be used like a semaphore, for instance to limit throughput.
+	   A channel is a first-class value that can be allocated and passed around like any other.
+	Channels of channels
+	Parallelization: Go is a concurrent language, not a parallel one
+	   Although the concurrency features of Go can make some problems easy to structure as parallel computations, and not all parallelization problems fit Go's model.
+			type Vector []float64
+
+			func (v Vector) DoSome(i, n int, u Vector, c chan int) {
+			    for ; i < n; i++ {
+			        v[i] += u.Op(v[i])
+			    }
+			    c <- 1    // signal that this piece is done
+			}
+
+			// const numCPU = 4 // number of CPU cores
+			// var numCPU = runtime.NumCPU()
+			var numCPU = runtime.GOMAXPROCS(0)
+
+			func (v Vector) DoAll(u Vector) {
+			    c := make(chan int, numCPU)  // Buffering optional but sensible.
+			    for i := 0; i < numCPU; i++ {
+			        go v.DoSome(i*len(v)/numCPU, (i+1)*len(v)/numCPU, u, c)
+			    }
+			    // Drain the channel.
+			    for i := 0; i < numCPU; i++ {
+			        <-c    // wait for one task to complete
+			    }
+			}
+	A leaky buffer ???
+Errors
+   Library routines must often return some sort of error indication to the caller. 
+   Go's multivalue return makes it easy to return a detailed error alongside the normal return value. 
+		type error interface {
+		    Error() string
+		}
+	Panic: built-in function
+	   Creates a run-time error that will stop the program 
+	   Real library functions should avoid panic.
+	Recover: built-in function 
+	   possible to recover to regain control of the goroutine and resume normal execution.
+	   A call to recover stops the unwinding and returns the argument passed to panic. 
+	   Recover is only useful inside deferred functions.
+			func server(workChan <-chan *Work) {
+			    for work := range workChan {
+			        go safelyDo(work)
+			    }
+			}
+
+			func safelyDo(work *Work) {
+			    defer func() {
+			        if err := recover(); err != nil {
+			            log.Println("work failed:", err)
+			        }
+			    }()
+			    do(work)
+			}
+	   Because recover always returns nil unless called directly from a deferred function, deferred code can call library routines that themselves use panic and recover without failing.
+A web server
+   It calls on the google chart server to produce a QR code, a matrix of boxes that encode the text. 
+
+
+// Effective Go : A web server for QR code generation with posted string by using google chart web service
+package main
+
+import (
+	"flag"
+	"html/template"
+	"log"
+	"net/http"
+)
+
+// http://localhost:1718
+var addr = flag.String("addr", ":1718", "http service address") // Q=17, R=18
+
+var templ = template.Must(template.New("qr").Parse(templateStr))
+
+func main() {
+	flag.Parse()
+	http.Handle("/", http.HandlerFunc(QR))
+	err := http.ListenAndServe(*addr, nil)
+	if err != nil {
+		log.Fatal("ListenAndServe:", err)
+	}
+}
+
+func QR(w http.ResponseWriter, req *http.Request) {
+	templ.Execute(w, req.FormValue("s"))
+}
+
+const templateStr = `
+<html>
+<head>
+<title>QR Link Generator</title>
+</head>
+<body>
+{{if .}}
+<img src="http://chart.apis.google.com/chart?chs=300x300&cht=qr&choe=UTF-8&chl={{.}}" />
+<br>
+{{.}}
+<br>
+<br>
+{{end}}
+<form action="/" name=f method="GET"><input maxLength=1024 size=70
+name=s value="" title="Text to QR Encode"><input type=submit
+value="Show QR" name=qr>
+</form>
+</body>
+</html>
+`   
