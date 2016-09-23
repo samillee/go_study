@@ -48,6 +48,7 @@ Temporary Items
 # IDEs and editors
 # =========================
 /.idea
+/.vscode/*
 
 # misc
 # =========================
